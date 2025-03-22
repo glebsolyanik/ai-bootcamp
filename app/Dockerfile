@@ -1,13 +1,22 @@
-FROM python:3.12-slim
+# Используем официальный Python образ как базовый
+FROM python:3.10-slim
 
+# Устанавливаем рабочую директорию в контейнере
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y 
+# Копируем файлы приложения в контейнер
+COPY . .
 
-COPY ./requirements.txt /app/
-RUN pip3 install -r ./requirements.txt
-RUN rm requirements.txt
+# Устанавливаем зависимости
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Устанавливаем PostgreSQL клиент для работы с базой данных
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Экспонируем порт, на котором будет работать приложение
 EXPOSE 8501
-COPY ./ /app/
 
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501"]
+# Запускаем приложение
+CMD ["streamlit", "run", "app.py"]
