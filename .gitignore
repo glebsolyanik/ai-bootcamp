@@ -1,0 +1,45 @@
+# Виртуальные окружения Python
+venv/
+.venv/
+env/
+
+# Файлы кэша и скомпилированные файлы
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Локальные настройки IDE
+.vscode/
+.idea/
+*.swp
+*.sublime-workspace
+
+# Файлы окружения и секреты
+.env
+.env.local
+secrets.yml
+
+# Данные и логи
+data/
+*.log
+*.sqlite
+
+# Докер и связанные файлы
+docker-compose.override.yml
+*.dockerignore
+**/logs/
+
+# Специфичные для Windows файлы
+Thumbs.db
+Desktop.ini
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Зависимости проекта (если не используются в репозитории)
+*.egg-info/
+dist/
+build/
+
+# Streamlit временные файлы
+.streamlit/

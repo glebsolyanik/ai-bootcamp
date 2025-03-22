@@ -1,0 +1,41 @@
+# docker-compose.yml
+
+version: "3.8"
+
+services:
+  # Сервис для Streamlit-приложения
+  app:
+    build: .
+    container_name: streamlit-llm-chat
+    ports:
+      - "8501:8501"  # Прокидываем порт для доступа к приложению
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: "myuser"
+      DB_PASSWORD: "mypassword"
+      DB_NAME: "mydatabase"
+
+  # Сервис для PostgreSQL
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+    driver: local
