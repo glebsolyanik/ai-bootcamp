@@ -84,6 +84,14 @@ def save_message_to_db(chat_id, role, content, DB_NAME, DB_USER, DB_HOST, DB_POR
     cur.close()
     conn.close()
 
+def get_chat_name(chat_id, db_name, db_user, db_host, db_port, db_password):
+    conn = get_db_connection(db_name, db_user, db_host, db_port, db_password)
+    cur = conn.cursor()
+    cur.execute("SELECT name FROM chats WHERE id = %s;", (chat_id,))
+    chat_name = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+    return chat_name
 
 def update_chat_name(chat_id, new_name, db_name, db_user, db_host, db_port, db_password):
     conn = psycopg2.connect(
