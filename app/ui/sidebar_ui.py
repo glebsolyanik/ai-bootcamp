@@ -4,18 +4,14 @@ import streamlit as st
 from utils import db_utils
 from utils.llm_utils import LLMAgent
 
-DB_NAME = os.environ.get("DB_NAME")
-DB_USER = os.environ.get("DB_USER")
-DB_HOST = os.environ.get("DB_HOST")
-DB_PORT = os.environ.get("DB_PORT")
-DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
-def render_sidebar():
+def render_sidebar(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
     with st.sidebar:
         render_model_settings()
-        render_chat_list()
+        render_chat_list(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
 
-def render_chat_list():
+
+def render_chat_list(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
     if st.session_state['LLM_agent'] is not None:
         st.header("Чаты")
         st.session_state['chats'] = db_utils.get_chats(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
@@ -26,32 +22,35 @@ def render_chat_list():
             st.session_state['chats'] = db_utils.get_chats(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
 
             show_chat_list()
-            st.rerun()  
+            st.rerun()
 
         show_chat_list()
-    
+
+
 def show_chat_list():
-    if st.session_state['chats'] is not None:
+    if st.session_state['chats'] is not None and len(st.session_state['chats']) > 0:
         chat_names = [chat[1] for chat in st.session_state['chats']]
-        
+
         current_chat_id = st.session_state['selected_chat_id']
         default_index = 0
-        
+
         if current_chat_id is not None:
             for i, chat in enumerate(st.session_state['chats']):
                 if chat[0] == current_chat_id:
                     default_index = i
                     break
         selected_index = st.radio(
-            "Выберите чат:", 
+            "Выберите чат:",
             options=range(len(chat_names)),
             format_func=lambda i: chat_names[i],
             index=default_index,
             key="chat_selector"
         )
-        
-        new_selected_chat_id = st.session_state['chats'][selected_index][0]
-        
+        if isinstance(selected_index, int):
+            new_selected_chat_id = st.session_state['chats'][selected_index][0]
+        else:
+            new_selected_chat_id = st.session_state['chats'][0][0]
+
         if current_chat_id != new_selected_chat_id:
             st.session_state['selected_chat_id'] = new_selected_chat_id
             st.rerun()
@@ -61,6 +60,7 @@ def show_chat_list():
         st.session_state['temperature'] = st.slider("Temperature", min_value=0.0, max_value=1.5, value=0.7, step=0.01)
     else:
         st.write("У вас нет чатов. Создайте новый.")
+
 
 def render_model_settings():
     if st.session_state['LLM_agent'] is None:
@@ -77,7 +77,8 @@ def render_model_settings():
             os.environ["API_KEY"] = api_key
 
             if model_provider == "openai":
-                LLM_agent = LLMAgent(os.getenv("MODEL_NAME"), os.getenv("MODEL_PROVIDER"), os.getenv("API_URL"), os.getenv("API_KEY"))
+                LLM_agent = LLMAgent(os.getenv("MODEL_NAME"), os.getenv("MODEL_PROVIDER"), os.getenv("API_URL"),
+                                     os.getenv("API_KEY"))
 
                 if LLM_agent.validate_model():
                     st.session_state['LLM_agent'] = LLM_agent
@@ -89,5 +90,3 @@ def render_model_settings():
 
             else:
                 st.error("Не поддерживаемый поставщик модели, попробуйте openai")
-                
-            

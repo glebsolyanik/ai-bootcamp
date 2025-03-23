@@ -3,13 +3,8 @@ import streamlit as st
 
 from utils import db_utils
 
-DB_NAME = os.environ.get("DB_NAME")
-DB_USER = os.environ.get("DB_USER")
-DB_HOST = os.environ.get("DB_HOST")
-DB_PORT = os.environ.get("DB_PORT")
-DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
-def render_chat():
+def render_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
 
     st.title("Чат с LLM")
     # Загружаем сообщения для выбранного чата

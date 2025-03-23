@@ -34,8 +34,8 @@ def main():
 
     db_utils.create_tables(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
     
-    render_sidebar()
-    render_chat()
+    render_sidebar(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+    render_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
 
 if __name__ == "__main__":
     main()
