@@ -2,8 +2,8 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 import streamlit as st
-from utils.llm_utils import send_message_llm
 from utils import db_utils
+from utils.llm_utils import LLMAgent
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -11,6 +11,7 @@ load_dotenv()
 MODEL_NAME = os.environ.get("MODEL_NAME")
 API_URL = os.environ.get("API_URL")
 API_KEY = os.environ.get("API_KEY")
+MODEL_PROVIDER = os.environ.get("MODEL_PROVIDER")
 
 DB_NAME = os.environ.get("DB_NAME")
 DB_USER = os.environ.get("DB_USER")
@@ -25,6 +26,8 @@ if not os.environ.get("OPENAI_API_KEY"):
 st.set_page_config(page_title="Мульти-чат с LLM", layout="wide")
 db_utils.create_tables(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
 selected_chat_id = None
+
+LLM_agent = LLMAgent(MODEL_NAME, MODEL_PROVIDER, API_URL, API_KEY)
 
 # Секция выбора чата и создания нового
 with st.sidebar:
@@ -83,8 +86,13 @@ if selected_chat_id is not None:
             st.markdown(prompt)
         with st.chat_message("assistant"):
             # Передаем параметры top_k, top_p, temperature в функцию инференса
-            ai_answer = send_message_llm(st.session_state.messages, API_URL, MODEL_NAME, temperature)
-            st.markdown(ai_answer)
+            ai_answer = LLM_agent.send_message(
+                messages=st.session_state.messages, 
+                temperature=temperature, 
+                chat_id=st.session_state.chat_id
+            )
+
+            ai_answer =st.write_stream(ai_answer)
         st.session_state.messages.append({"role": "assistant", "content": ai_answer})
 
         # Сохраняем в базу
