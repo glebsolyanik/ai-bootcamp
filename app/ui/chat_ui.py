@@ -11,6 +11,7 @@ def render_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
     if 'stop_generation' not in st.session_state:
         st.session_state['stop_generation'] = False
 
+
     # Загружаем сообщения для выбранного чата
     if st.session_state['selected_chat_id'] is not None and st.session_state['LLM_agent'] is not None:
         st.session_state['messages'] = db_utils.load_chat_history(st.session_state['selected_chat_id'], DB_NAME,
@@ -27,8 +28,9 @@ def render_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
             with st.chat_message("user"):
                 st.markdown(prompt)
 
+            placeholder = st.empty()
             # Кнопка для остановки генерации
-            stop_button = st.button("Остановить генерацию", key="stop_gen_button")
+            stop_button = placeholder.button("Остановить генерацию", key="stop_gen_button")
 
             # Обработка нажатия на кнопку остановки генерации
             if stop_button:
@@ -48,6 +50,7 @@ def render_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
 
                     ai_answer = st.write_stream(ai_answer)
 
+                placeholder.empty()
                 # Сохраняем ответ, если генерация завершена
                 st.session_state['messages'].append({"role": "assistant", "content": ai_answer})
 
