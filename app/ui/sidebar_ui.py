@@ -5,21 +5,21 @@ from utils import db_utils
 from utils.llm_utils import LLMAgent
 
 
-def render_sidebar(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
+def render_sidebar():
     with st.sidebar:
         render_model_settings()
-        render_chat_list(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+        render_chat_list()
 
 
-def render_chat_list(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
+def render_chat_list():
     if st.session_state['LLM_agent'] is not None:
         st.header("Чаты")
-        st.session_state['chats'] = db_utils.get_chats(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+        st.session_state['chats'] = db_utils.get_chats()
 
         if st.button("➕ Новый чат"):
-            new_chat_id = db_utils.create_new_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+            new_chat_id = db_utils.create_new_chat()
             st.session_state['selected_chat_id'] = new_chat_id
-            st.session_state['chats'] = db_utils.get_chats(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+            st.session_state['chats'] = db_utils.get_chats()
 
             show_chat_list()
             st.rerun()
@@ -77,8 +77,16 @@ def render_model_settings():
             os.environ["API_KEY"] = api_key
 
             if model_provider == "openai":
-                LLM_agent = LLMAgent(os.getenv("MODEL_NAME"), os.getenv("MODEL_PROVIDER"), os.getenv("API_URL"),
-                                     os.getenv("API_KEY"))
+                LLM_agent = LLMAgent(os.getenv("MODEL_NAME"),
+                                     os.getenv("MODEL_PROVIDER"),
+                                     os.getenv("API_URL"),
+                                     os.getenv("API_KEY"),
+                                     st.session_state["params_RAG"]['ROUTER_CONFIG_PATH'],
+                                     st.session_state["params_RAG"]['EMBEDDING_MODEL_NAME'],
+                                     st.session_state["params_RAG"]['CLASSES_JSON_INFO_PATH'],
+                                     st.session_state["params_RAG"]['ARTIFACTS_PATH'],
+                                     st.session_state["params_RAG"]['DATAFRAME_PATH']
+                                     )
 
                 if LLM_agent.validate_model():
                     st.session_state['LLM_agent'] = LLM_agent

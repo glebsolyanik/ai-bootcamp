@@ -4,18 +4,16 @@ import streamlit as st
 from utils import db_utils
 
 
-def render_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
+def render_chat():
     st.title("Чат с LLM")
 
     # Инициализация состояния остановки генерации
     if 'stop_generation' not in st.session_state:
         st.session_state['stop_generation'] = False
 
-
     # Загружаем сообщения для выбранного чата
     if st.session_state['selected_chat_id'] is not None and st.session_state['LLM_agent'] is not None:
-        st.session_state['messages'] = db_utils.load_chat_history(st.session_state['selected_chat_id'], DB_NAME,
-                                                                  DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+        st.session_state['messages'] = db_utils.load_chat_history(st.session_state['selected_chat_id'])
 
         # Отображаем сообщения
         for message in st.session_state['messages']:
@@ -55,13 +53,10 @@ def render_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
                 st.session_state['messages'].append({"role": "assistant", "content": ai_answer})
 
                 # Сохраняем в базу
-                db_utils.save_message_to_db(st.session_state['selected_chat_id'], "user", prompt, DB_NAME, DB_USER,
-                                            DB_HOST, DB_PORT, DB_PASSWORD)
-                db_utils.save_message_to_db(st.session_state['selected_chat_id'], "assistant", ai_answer, DB_NAME,
-                                            DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+                db_utils.save_message_to_db(st.session_state['selected_chat_id'], "user", prompt)
+                db_utils.save_message_to_db(st.session_state['selected_chat_id'], "assistant", ai_answer)
 
-                chat_name = db_utils.get_chat_name(st.session_state['selected_chat_id'], DB_NAME, DB_USER, DB_HOST,
-                                                   DB_PORT, DB_PASSWORD)
+                chat_name = db_utils.get_chat_name(st.session_state['selected_chat_id'])
 
                 if chat_name == "Новый чат":
                     first_message = st.session_state['messages'][0]['content']
@@ -76,15 +71,10 @@ def render_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD):
 
                     chat_name = chat_name.strip()[:50]
 
-                    db_utils.update_chat_name(st.session_state['selected_chat_id'], chat_name, DB_NAME, DB_USER,
-                                              DB_HOST, DB_PORT, DB_PASSWORD)
+                    db_utils.update_chat_name(st.session_state['selected_chat_id'], chat_name)
                     st.rerun()
             else:
                 # Если генерация была остановлена, ничего не делаем
                 st.session_state['stop_generation'] = False  # Сбросить флаг, если нужно
     else:
         st.info("Перед началом общения, введите настройки модели в левой панели")
-            
-            
-            
-            
