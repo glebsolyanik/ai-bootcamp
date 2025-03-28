@@ -12,7 +12,7 @@ class LLMAgent:
             base_url=api_url,
             api_key=api_key,
         )
-
+        
         self.graph = self.create_graph()
     
     def call_model(self, state: MessagesState):

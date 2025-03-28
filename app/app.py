@@ -1,17 +1,13 @@
 import os
-import psycopg2
 from dotenv import load_dotenv
 import streamlit as st
 from utils import db_utils
-from utils.llm_utils import LLMAgent
+
+from ui.sidebar_ui import render_sidebar
+from ui.chat_ui import render_chat
 
 # Загружаем переменные окружения
 load_dotenv()
-
-MODEL_NAME = os.environ.get("MODEL_NAME")
-API_URL = os.environ.get("API_URL")
-API_KEY = os.environ.get("API_KEY")
-MODEL_PROVIDER = os.environ.get("MODEL_PROVIDER")
 
 DB_NAME = os.environ.get("DB_NAME")
 DB_USER = os.environ.get("DB_USER")
@@ -19,82 +15,27 @@ DB_HOST = os.environ.get("DB_HOST")
 DB_PORT = os.environ.get("DB_PORT")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
-if not os.environ.get("OPENAI_API_KEY"):
-    os.environ["OPENAI_API_KEY"] = API_KEY
-
 # Инициализация приложения
-st.set_page_config(page_title="Мульти-чат с LLM", layout="wide")
-db_utils.create_tables(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
-selected_chat_id = None
 
-LLM_agent = LLMAgent(MODEL_NAME, MODEL_PROVIDER, API_URL, API_KEY)
 
-# Секция выбора чата и создания нового
-with st.sidebar:
-    st.header("Чаты")
-    chats = db_utils.get_chats(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
 
-    # Кнопка для создания нового чата
-    if st.button("➕ Новый чат"):
-        new_chat_id = db_utils.create_new_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
-        st.rerun()  # Перезагружаем страницу, чтобы отобразить новый чат
+def main():
 
-    # Если чаты есть, показываем список
-    if chats:
-        # Создаем список чатов и используем st.radio для выбора
-        chat_options = {f"{chat[1]}": chat[0] for chat in chats}
+    if 'LLM_agent' not in st.session_state:
+        st.session_state['LLM_agent'] = None
 
-        # Используем st.radio вместо st.selectbox
-        selected_chat_label = st.radio("Выберите чат:", options=list(chat_options.keys()))
+    if 'selected_chat_id' not in st.session_state:
+        st.session_state['selected_chat_id'] = None
 
-        # Получаем ID выбранного чата
-        selected_chat_id = chat_options[selected_chat_label]
+    if 'chats' not in st.session_state:
+        st.session_state['chats'] = None
 
-        # Добавляем возможность изменить название чата
-        new_name = st.text_input("Изменить название чата", value=selected_chat_label.split(" (ID:")[0])
+    st.set_page_config(page_title="Мульти-чат с LLM", layout="wide")
 
-        if st.button("Сохранить изменения"):
-            if new_name:
-                db_utils.update_chat_name(selected_chat_id, new_name, DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
-                st.success(f"Название чата изменено на: {new_name}")
-                st.rerun()  # Перезагружаем страницу, чтобы отобразить изменения
+    db_utils.create_tables(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+    
+    render_sidebar(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+    render_chat(DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
 
-        temperature = st.slider("Temperature", min_value=0.0, max_value=1.5, value=0.7, step=0.01)
-
-    else:
-        st.write("У вас нет чатов. Создайте новый.")
-
-st.title("Чат с LLM")
-
-if "chat_id" not in st.session_state:
-    st.session_state["chat_id"] = -1
-
-# Загружаем сообщения для выбранного чата
-if selected_chat_id is not None:
-    st.session_state.chat_id = selected_chat_id
-    st.session_state.messages = db_utils.load_chat_history(selected_chat_id, DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
-
-    # Отображаем сообщения
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # Поле ввода
-    if prompt := st.chat_input("Сообщение"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        with st.chat_message("assistant"):
-            # Передаем параметры top_k, top_p, temperature в функцию инференса
-            ai_answer = LLM_agent.send_message(
-                messages=st.session_state.messages, 
-                temperature=temperature, 
-                chat_id=st.session_state.chat_id
-            )
-
-            ai_answer =st.write_stream(ai_answer)
-        st.session_state.messages.append({"role": "assistant", "content": ai_answer})
-
-        # Сохраняем в базу
-        db_utils.save_message_to_db(st.session_state.chat_id, "user", prompt, DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
-        db_utils.save_message_to_db(st.session_state.chat_id, "assistant", ai_answer, DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASSWORD)
+if __name__ == "__main__":
+    main()
