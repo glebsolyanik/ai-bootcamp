@@ -22,7 +22,7 @@ ROUTER_CONFIG_PATH = os.environ.get("ROUTER_CONFIG_PATH")
 EMBEDDING_MODEL_NAME = os.environ.get("EMBEDDING_MODEL_NAME")
 CLASSES_JSON_INFO_PATH = os.environ.get("CLASSES_JSON_INFO_PATH")
 DATAFRAME_PATH = os.environ.get("DATAFRAME_PATH")
-
+INDEX_ROUTER_PATH = os.environ.get("INDEX_ROUTER_PATH")
 
 def main():
 
@@ -41,7 +41,8 @@ def main():
             "ROUTER_CONFIG_PATH": ROUTER_CONFIG_PATH,
             "EMBEDDING_MODEL_NAME": EMBEDDING_MODEL_NAME,
             "CLASSES_JSON_INFO_PATH": CLASSES_JSON_INFO_PATH,
-            "DATAFRAME_PATH": DATAFRAME_PATH
+            "DATAFRAME_PATH": DATAFRAME_PATH,
+            "INDEX_ROUTER_PATH": INDEX_ROUTER_PATH
         }
 
     if 'LLM_agent' not in st.session_state:
