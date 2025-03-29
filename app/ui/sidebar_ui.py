@@ -77,16 +77,12 @@ def render_model_settings():
             os.environ["API_KEY"] = api_key
 
             if model_provider == "openai":
-                LLM_agent = LLMAgent(os.getenv("MODEL_NAME"),
-                                     os.getenv("MODEL_PROVIDER"),
-                                     os.getenv("API_URL"),
-                                     os.getenv("API_KEY"),
-                                     st.session_state["params_RAG"]['ROUTER_CONFIG_PATH'],
-                                     st.session_state["params_RAG"]['EMBEDDING_MODEL_NAME'],
-                                     st.session_state["params_RAG"]['CLASSES_JSON_INFO_PATH'],
-                                     st.session_state["params_RAG"]['ARTIFACTS_PATH'],
-                                     st.session_state["params_RAG"]['DATAFRAME_PATH']
-                                     )
+                LLM_agent = LLMAgent(
+                    os.getenv("MODEL_NAME"),
+                    os.getenv("MODEL_PROVIDER"),
+                    os.getenv("API_URL"),
+                    os.getenv("API_KEY"),                 
+                )
 
                 if LLM_agent.validate_model():
                     st.session_state['LLM_agent'] = LLM_agent
