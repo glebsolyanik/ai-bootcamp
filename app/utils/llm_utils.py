@@ -131,21 +131,14 @@ class LLMAgent:
         # Обрезаем историю сообщений
         messages = self.trim_message_history(messages)
 
-        result = self.graph.invoke(
-            input={
-                "question": messages[-1]['content'],
-                "messages": messages
-            },
-            config={
-                "configurable": {
-                    "thread_id": chat_id,
-                }
-            }
-        )
+        if len(messages) > 0:
+            send_text = messages[-1]['content']
+        else:
+            send_text = "Скажи что не можешь ответить на это сообщение"
 
         stream = self.graph.stream(
             input={
-                "question": messages[-1]['content'],
+                "question": send_text,
                 "messages": messages
             },
             config={
