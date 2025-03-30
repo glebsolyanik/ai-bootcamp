@@ -15,6 +15,11 @@ from langgraph.graph.message import add_messages
 from semantic_router.routers import SemanticRouter
 import pickle
 
+from langchain_core.messages.utils import count_tokens_approximately
+from langchain.schema import HumanMessage, AIMessage
+
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,6 +28,16 @@ class State(TypedDict):
     context: List[str]
     messages: Annotated[Sequence[BaseMessage], add_messages]
     answer: str
+
+
+def convert_to_langchain_messages(messages):
+    langchain_messages = []
+    for msg in messages:
+        if msg['role'] == 'user':
+            langchain_messages.append(HumanMessage(content=msg['content']))
+        elif msg['role'] == 'assistant':
+            langchain_messages.append(AIMessage(content=msg['content']))
+    return langchain_messages
 
 
 class LLMAgent:
@@ -35,7 +50,6 @@ class LLMAgent:
         )
 
         artifacts_path = st.session_state['params_RAG']['ARTIFACTS_PATH']
-
         self.vector_storage = VectorStorage(
             artifacts_path=artifacts_path,
         )
@@ -95,11 +109,41 @@ class LLMAgent:
         response = self.llm.invoke(prompt)
         return {"messages": response}
 
-    def send_message(self, messages, temperature, chat_id):
+    def count_tokens(self, messages):
+        total_tokens = 0
+        for msg in messages:
+            total_tokens += count_tokens_approximately(msg['content'])  # Используем вашу функцию подсчета токенов
+        return total_tokens
 
+    def trim_message_history(self, messages):
+        total_tokens = self.count_tokens(messages)
+
+        # Обрезаем историю, если количество токенов превышает 32000
+        while total_tokens > 32000 and len(messages) > 0:
+            removed_message = messages.pop(0)  # Удаляем самое старое сообщение
+            total_tokens -= count_tokens_approximately(removed_message['content'])
+
+        return messages
+
+    def send_message(self, messages, temperature, chat_id):
         self.llm.temperature = temperature
 
-        stream = self.graph.invoke(
+        # Обрезаем историю сообщений
+        messages = self.trim_message_history(messages)
+
+        result = self.graph.invoke(
+            input={
+                "question": messages[-1]['content'],
+                "messages": messages
+            },
+            config={
+                "configurable": {
+                    "thread_id": chat_id,
+                }
+            }
+        )
+
+        stream = self.graph.stream(
             input={
                 "question": messages[-1]['content'],
                 "messages": messages
