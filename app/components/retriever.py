@@ -1,0 +1,44 @@
+import os
+import json
+import numpy as np
+import pandas as pd
+
+import faiss
+from sentence_transformers import SentenceTransformer
+
+from utils.state import State
+
+class Retriever:
+    def __init__(self, 
+            artifacts_path,
+            dataframe_path,
+            classes_json_info_path,
+            embedding_model_name,
+        ) -> None:
+
+        self.artifacts_path = artifacts_path
+        self.context_data = pd.read_csv(os.path.join(self.artifacts_path, dataframe_path))
+
+        self.embedding_model = SentenceTransformer(embedding_model_name)
+
+    def retrieve(self, state:State):
+        if state['context_source'] is None or state['context_source'] == "chitchat":
+            return {"context": ""}
+        
+        context = self.similarity_search(state["question"], state['context_source'])
+
+        return {"context": context['answer'].to_list()}
+
+    def similarity_search(self, query: str, class_name: str, top_k: int = 5):
+        query_emb = self.embedding_model.encode([query])
+        
+        index = faiss.read_index(os.path.join(self.artifacts_path, f"{class_name}.index"))
+        
+        _, I = index.search(query_emb, top_k)
+
+        top_k = self.context_data[self.context_data['class_type'] == class_name].iloc[I[0]]
+
+        return top_k
+
+
+    
