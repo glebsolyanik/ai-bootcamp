@@ -19,34 +19,26 @@ class Retriever:
         self.artifacts_path = artifacts_path
         self.context_data = pd.read_csv(os.path.join(self.artifacts_path, dataframe_path))
 
-        with open(os.path.join(self.artifacts_path, classes_json_info_path)) as f:
-            self.d_classes_info = json.load(f)
-
         self.embedding_model = SentenceTransformer(embedding_model_name)
 
     def retrieve(self, state:State):
         if state['context_source'] is None or state['context_source'] == "chitchat":
             return {"context": ""}
         
-        indexes = self.similarity_search(state["question"], state['context_source'])
-        content = self.get_content(indexes)['answer'].to_list()
+        context = self.similarity_search(state["question"], state['context_source'])
 
-        return {"context": content}
+        return {"context": context['answer'].to_list()}
 
     def similarity_search(self, query: str, class_name: str, top_k: int = 5):
         query_emb = self.embedding_model.encode([query])
         
         index = faiss.read_index(os.path.join(self.artifacts_path, f"{class_name}.index"))
         
-        result = index.search(query_emb, top_k)
+        _, I = index.search(query_emb, top_k)
 
-        indexes = np.array(self.d_classes_info[class_name]['indexes'])
-        result_indexes = indexes[result[1]]
+        top_k = self.context_data[self.context_data['class_type'] == class_name].iloc[I[0]]
 
-        return result_indexes[0]
-
-    def get_content(self, indexes):
-        return self.context_data.iloc[indexes]
+        return top_k
 
 
     
