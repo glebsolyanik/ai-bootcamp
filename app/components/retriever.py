@@ -1,6 +1,4 @@
 import os
-import json
-import numpy as np
 import pandas as pd
 
 import faiss
@@ -12,7 +10,6 @@ class Retriever:
     def __init__(self, 
             artifacts_path,
             dataframe_path,
-            classes_json_info_path,
             embedding_model_name,
         ) -> None:
 
