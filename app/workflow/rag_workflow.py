@@ -7,6 +7,8 @@ from langgraph.graph import START, StateGraph
 from components.router import Router
 from components.llm import LLM
 from components.retriever import Retriever
+from components.reranker import Reranker
+
 from utils.trim_messages import trim_message_history
 from utils.state import State
 
@@ -16,16 +18,18 @@ class RAGWorkflow:
             llm: LLM, 
             router: Router,
             retriever: Retriever,
+            reranker: Reranker
         ) -> None:
 
         self.llm = llm
         self.router = router
         self.retriever = retriever
+        self.reranker = reranker
 
         self.graph = self.create_graph()
 
     def create_graph(self):
-        builder = StateGraph(state_schema=State).add_sequence([self.router.route_query, self.retriever.retrieve, self.llm.generate])
+        builder = StateGraph(state_schema=State).add_sequence([self.router.route_query, self.retriever.retrieve, self.reranker.bm25_reranker, self.llm.generate])
         builder.add_edge(START, 'route_query')
 
         graph = builder.compile(checkpointer=MemorySaver())

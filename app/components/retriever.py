@@ -18,13 +18,23 @@ class Retriever:
 
         self.embedding_model = SentenceTransformer(embedding_model_name)
 
-    def retrieve(self, state:State):
-        if state['context_source'] is None or state['context_source'] == "chitchat":
-            return {"context": ""}
-        
-        context = self.similarity_search(state["question"], state['context_source'])
+    def retrieve(self, state: State):
+        text_list = []
+        context_source = []
+        for name in state['context_source']:
+            if name is None or name == "chitchat":
+                continue
 
-        return {"context": context['answer'].to_list()}
+            context = self.similarity_search(state["question"], name, 10)
+            context = context['answer'].to_list()
+            text_list = text_list + context
+            context_source = context_source + [name]
+
+        if len(text_list) == 0:
+            return {"context": ""}
+        else:
+            return {"context": text_list, "context_source": context_source}
+
 
     def similarity_search(self, query: str, class_name: str, top_k: int = 5):
         query_emb = self.embedding_model.encode([query])

@@ -24,6 +24,9 @@ CLASSES_JSON_INFO_PATH = os.environ.get("CLASSES_JSON_INFO_PATH")
 DATAFRAME_PATH = os.environ.get("DATAFRAME_PATH")
 INDEX_ROUTER_PATH = os.environ.get("INDEX_ROUTER_PATH")
 
+# настройка API
+PROVIDER_API = os.environ.get("PROVIDER_API")
+
 def main():
 
     if 'params_DB' not in st.session_state:
@@ -42,7 +45,8 @@ def main():
             "EMBEDDING_MODEL_NAME": EMBEDDING_MODEL_NAME,
             "CLASSES_JSON_INFO_PATH": CLASSES_JSON_INFO_PATH,
             "DATAFRAME_PATH": DATAFRAME_PATH,
-            "INDEX_ROUTER_PATH": INDEX_ROUTER_PATH
+            "INDEX_ROUTER_PATH": INDEX_ROUTER_PATH,
+            "PROVIDER_API": PROVIDER_API
         }
 
     if 'workflow' not in st.session_state:
