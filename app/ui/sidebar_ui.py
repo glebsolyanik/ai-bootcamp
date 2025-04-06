@@ -97,7 +97,6 @@ def render_model_settings():
                     retriever = Retriever(
                         artifacts_path=st.session_state['params_RAG']['ARTIFACTS_PATH'],
                         dataframe_path=st.session_state['params_RAG']['DATAFRAME_PATH'],
-                        classes_json_info_path=st.session_state['params_RAG']['CLASSES_JSON_INFO_PATH'],
                         embedding_model_name=st.session_state['params_RAG']['EMBEDDING_MODEL_NAME'],
                     )
 
