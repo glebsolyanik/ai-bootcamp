@@ -32,7 +32,7 @@ class Retriever:
                 if name is None or name == "chitchat":
                     continue
 
-                context = self.similarity_search(state["question"], state['context_source'], 10)
+                context = self.similarity_search(state["question"], name, 10)
                 context = context.to_list()
                 text_list = text_list + context
 
