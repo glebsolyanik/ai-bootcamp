@@ -45,8 +45,8 @@ def main():
             "INDEX_ROUTER_PATH": INDEX_ROUTER_PATH
         }
 
-    if 'LLM_agent' not in st.session_state:
-        st.session_state['LLM_agent'] = None
+    if 'workflow' not in st.session_state:
+        st.session_state['workflow'] = None
 
     if 'selected_chat_id' not in st.session_state:
         st.session_state['selected_chat_id'] = None

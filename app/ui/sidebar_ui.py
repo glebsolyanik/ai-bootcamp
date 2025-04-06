@@ -2,17 +2,20 @@ import os
 import streamlit as st
 
 from utils import db_utils
-from utils.llm_utils import LLMAgent
 
+from workflow.rag_workflow import RAGWorkflow
+from components.router import Router
+from components.llm import LLM
+from components.retriever import Retriever
+from components.reranker import Reranker
 
 def render_sidebar():
     with st.sidebar:
         render_model_settings()
         render_chat_list()
 
-
 def render_chat_list():
-    if st.session_state['LLM_agent'] is not None:
+    if st.session_state['workflow'] is not None:
         st.header("Чаты")
         st.session_state['chats'] = db_utils.get_chats()
 
@@ -63,7 +66,7 @@ def show_chat_list():
 
 
 def render_model_settings():
-    if st.session_state['LLM_agent'] is None:
+    if st.session_state['workflow'] is None:
         st.header("Настройки модели")
         model = st.text_input("Название модели", value=os.getenv("MODEL_NAME"))
         model_provider = st.text_input("Поставщик модели", value=os.getenv("MODEL_PROVIDER"))
@@ -76,21 +79,43 @@ def render_model_settings():
             os.environ["API_URL"] = base_url
             os.environ["API_KEY"] = api_key
 
+            # Initialization
             if model_provider == "openai":
-                LLM_agent = LLMAgent(
+                llm = LLM(
                     os.getenv("MODEL_NAME"),
                     os.getenv("MODEL_PROVIDER"),
                     os.getenv("API_URL"),
                     os.getenv("API_KEY"),                 
                 )
+                if llm.validate_model():
+                    router = Router(
+                        artifacts_path=st.session_state['params_RAG']['ARTIFACTS_PATH'],
+                        router_config_path=st.session_state['params_RAG']['ROUTER_CONFIG_PATH'],
+                        index_router_path=st.session_state['params_RAG']['INDEX_ROUTER_PATH']
+                    )
 
-                if LLM_agent.validate_model():
-                    st.session_state['LLM_agent'] = LLM_agent
+                    retriever = Retriever(
+                        artifacts_path=st.session_state['params_RAG']['ARTIFACTS_PATH'],
+                        dataframe_path=st.session_state['params_RAG']['DATAFRAME_PATH'],
+                        classes_json_info_path=st.session_state['params_RAG']['CLASSES_JSON_INFO_PATH'],
+                        embedding_model_name=st.session_state['params_RAG']['EMBEDDING_MODEL_NAME'],
+                    )
+
+                    reranker = Reranker()
+                    workflow = RAGWorkflow(
+                        llm=llm,
+                        router=router,
+                        retriever=retriever,
+                        reranker=reranker
+                    )
+
+                    st.session_state['workflow'] = workflow
                     st.success("Модель успешно подключена")
                     st.rerun()
                 else:
-                    st.session_state['LLM_agent'] = None
+                    st.session_state['workflow'] = None
                     st.error("Не удалось подключиться к модели. Попробуйте изменить настройки")
 
             else:
                 st.error("Не поддерживаемый поставщик модели, попробуйте openai")
+    

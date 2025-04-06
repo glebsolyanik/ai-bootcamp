@@ -12,7 +12,7 @@ def render_chat():
         st.session_state['stop_generation'] = False
 
     # Загружаем сообщения для выбранного чата
-    if st.session_state['selected_chat_id'] is not None and st.session_state['LLM_agent'] is not None:
+    if st.session_state['selected_chat_id'] is not None and st.session_state['workflow'] is not None:
         st.session_state['messages'] = db_utils.load_chat_history(st.session_state['selected_chat_id'])
 
         # Отображаем сообщения
@@ -40,7 +40,7 @@ def render_chat():
             if not st.session_state['stop_generation']:
                 with st.chat_message("assistant"):
                     # Передаем параметры temperature в функцию инференса
-                    ai_answer = st.session_state['LLM_agent'].send_message(
+                    ai_answer = st.session_state['workflow'].send_message(
                         messages=st.session_state['messages'],
                         temperature=st.session_state['temperature'],
                         chat_id=st.session_state['selected_chat_id']
@@ -67,7 +67,7 @@ def render_chat():
                         {"role": "user", "content": f"Сообщение пользователя: {first_message}"}
                     ]
 
-                    chat_name = st.session_state['LLM_agent'].llm.invoke(title_messages).content
+                    chat_name = st.session_state['workflow'].llm.model.invoke(title_messages).content
 
                     chat_name = chat_name.strip()[:50]
 

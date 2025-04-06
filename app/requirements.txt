@@ -8,9 +8,11 @@ nltk==3.9.1
 numpy
 openai==1.69.0
 pandas==2.2.3
-psycopg2_binary==2.9.9
+psycopg2_binary==2.9.
 pymorphy3==2.0.2
 python-dotenv==1.1.0
 rank_bm25==0.2.2
+accelerate
+transformers
 semantic_router==0.1.6
 sentence_transformers==3.0.1
