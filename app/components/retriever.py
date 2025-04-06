@@ -23,7 +23,7 @@ class Retriever:
             if state['context_source'] is None or state['context_source'] == "chitchat":
                 return {"context": ""}
 
-            context = self.similarity_search(state["question"], state['context_source'], 10)
+            context = self.similarity_search(state["question"], state['context_source'][0], 10)
 
             return {"context": context['answer'].to_list()}
         else:
