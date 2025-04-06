@@ -11,8 +11,7 @@ from utils.state import State
 class Retriever:
     def __init__(self, 
             artifacts_path,
-            dataframe_path,
-            classes_json_info_path,
+            dataframe_path,  
             embedding_model_name,
         ) -> None:
 
