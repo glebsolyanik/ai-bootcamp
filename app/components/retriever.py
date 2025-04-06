@@ -33,7 +33,7 @@ class Retriever:
                     continue
 
                 context = self.similarity_search(state["question"], name, 10)
-                context = context.to_list()
+                context = context['answer'].to_list()
                 text_list = text_list + context
 
             if len(text_list) == 0:
