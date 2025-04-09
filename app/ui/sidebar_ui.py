@@ -69,18 +69,17 @@ def render_model_settings():
     if st.session_state['workflow'] is None:
         st.header("Настройки модели")
         model = st.text_input("Название модели", value=os.getenv("MODEL_NAME"))
-        model_provider = st.text_input("Поставщик модели", value=os.getenv("MODEL_PROVIDER"))
         base_url = st.text_input("Базовый URL", value=os.getenv("API_URL"))
         api_key = st.text_input("API ключ", value=os.getenv("API_KEY"), type="password")
 
         if st.button("Сохранить настройки"):
             os.environ["MODEL_NAME"] = model
-            os.environ["MODEL_PROVIDER"] = model_provider
+            os.environ["MODEL_PROVIDER"] = st.session_state['params_RAG']['PROVIDER_API']
             os.environ["API_URL"] = base_url
             os.environ["API_KEY"] = api_key
 
             # Initialization
-            if model_provider == "openai":
+            if st.session_state['params_RAG']['PROVIDER_API'] == "openai":
                 llm = LLM(
                     os.getenv("MODEL_NAME"),
                     os.getenv("MODEL_PROVIDER"),
@@ -89,9 +88,10 @@ def render_model_settings():
                 )
                 if llm.validate_model():
                     router = Router(
-                        artifacts_path=st.session_state['params_RAG']['ARTIFACTS_PATH'],
-                        router_config_path=st.session_state['params_RAG']['ROUTER_CONFIG_PATH'],
-                        index_router_path=st.session_state['params_RAG']['INDEX_ROUTER_PATH']
+                        os.getenv("MODEL_NAME"),
+                        os.getenv("MODEL_PROVIDER"),
+                        os.getenv("API_URL"),
+                        os.getenv("API_KEY"),
                     )
 
                     retriever = Retriever(

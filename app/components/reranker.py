@@ -23,6 +23,7 @@ class Reranker:
         """
         texts = state['context']
         query = state['question']
+        source = state['context_source']
         # Токенизация текстов и запроса (базовый вариант)
         tokenized_texts = [doc.split() for doc in texts]
         tokenized_query = query.split()
@@ -34,7 +35,8 @@ class Reranker:
         scores = bm25.get_scores(tokenized_query)
 
         # Сортировка текстов по убыванию релевантности
-        ranked_results = sorted(zip(texts, scores), key=lambda x: x[1], reverse=True)
+        ranked_results = sorted(zip(texts, scores, source), key=lambda x: x[1], reverse=True)
 
-        result = [text for text, _ in ranked_results]
-        return {"context": result[:5]}
+        result = [text for text, _, _ in ranked_results]
+        sources = [source for _, _, source in ranked_results]
+        return {"context": result[:5], "context_source": sources[0]}
