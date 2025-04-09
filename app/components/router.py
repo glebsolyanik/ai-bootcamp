@@ -70,7 +70,7 @@ class Router:
         message = self.system + "user's query:" + state["question"]
         generator = generate.json(self.model, RouteQuery)
         result = generator(
-            message
+            message, temperature = 0
         )
 
         res = [result.datasource_1, result.datasource_2]
