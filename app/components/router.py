@@ -5,30 +5,32 @@ from semantic_router.routers import SemanticRouter
 
 from utils.state import State
 
-from langchain.chat_models import init_chat_model
+from outlines import models, generate
 from typing import Literal
 
-from langchain_core.prompts import ChatPromptTemplate
-from pydantic.v1 import BaseModel, Field
+from pydantic import BaseModel, Field
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-
-class MyRouteQuery(BaseModel):
+class RouteQuery(BaseModel):
     """Route a user query to the most relevant two datasource."""
 
     datasource_1: Literal["bank", "brave", "bridges_and_pipes", "documents", "dom_ru",
-    "edu", "FAQ_bulldog", "FAQ_skin", "gosuslugi", "Michelin", "potr_carz",
-    "rectifier", "red_mad_robot", "starvest", "telegram", "TK_RF", "world_class"] = (Field(
+                        "edu", "FAQ_bulldog", "FAQ_skin", "gosuslugi", "Michelin", "potr_carz",
+                        "rectifier", "red_mad_robot", "starvest", "telegram", "TK_RF", "world_class", "chitchat"] = Field(
         ...,
         description="""Given a user question, choose which datasource would be most 1 relevant for answering their question
-        """, ))
+        """,)
     datasource_2: Literal["bank", "brave", "bridges_and_pipes", "documents", "dom_ru",
-    "edu", "FAQ_bulldog", "FAQ_skin", "gosuslugi", "Michelin", "potr_carz",
-    "rectifier", "red_mad_robot", "starvest", "telegram", "TK_RF", "world_class"] = Field(
+                        "edu", "FAQ_bulldog", "FAQ_skin", "gosuslugi", "Michelin", "potr_carz",
+                        "rectifier", "red_mad_robot", "starvest", "telegram", "TK_RF", "world_class", "chitchat"] = Field(
         ...,
         description="""Given a user question, choose which datasource would be most 2 relevant for answering their question
         """,
     )
+
 
 
 class Router:
@@ -36,18 +38,14 @@ class Router:
             self,
             model, model_provider, api_url, api_key
     ) -> None:
-        model = init_chat_model(
-            model=model,
-            model_provider=model_provider,
+        self.model = models.openai(
+            model,
             base_url=api_url,
             api_key=api_key,
-            temperature=0
         )
 
-        structured_llm = model.with_structured_output(MyRouteQuery, method='function_calling')
-
-        system = """You are an expert in directing user questions to the appropriate data source.
-        Depending on the topic the question pertains to, select 2 relevant data sources.
+        self.system = """You are an expert in directing user questions to the appropriate data source.
+        Depending on the topic the question pertains to, select 1 relevant data source.
         bank — Оплата покупок бесконтактно, управление кредитами, открытие вкладов, переводы через приложение.
         brave — Вопросы о компании Brave Bison.
         bridges_and_pipes — Требования к проектированию мостов, труб и инженерных сооружений, включая расчёты, выбор материалов, защиту от
@@ -64,18 +62,16 @@ class Router:
         starvest — Вопросы о финансовом отчёте компании Starvest Plc.
         telegram — Вопросы о мессенджере Telegram.
         TK_RF — Трудовой кодекс РФ, трудовые отношения, права и обязанности сторон, условия труда.
-        world_class — Мобильное приложение World Class 3.0, новые функции, управление расписанием и клубными услугами."""
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", system),
-                ("human", "{question}"),
-            ]
-        )
-
-        self.router = prompt | structured_llm
+        world_class — Мобильное приложение World Class 3.0, новые функции, управление расписанием и клубными услугами.
+        chitchat - сообщение, которое ни относится ни к одному из вышеперечисленных классов."""
 
     def route_query(self, state: State):
-        result = self.router.invoke({"question": state["question"]})
+        logger.warning(f"Message == {state["question"]}")
+        message = self.system + "user's query:" + state["question"]
+        generator = generate.json(self.model, RouteQuery)
+        result = generator(
+            message
+        )
 
         res = [result.datasource_1, result.datasource_2]
 

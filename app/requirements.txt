@@ -17,3 +17,4 @@ transformers
 semantic_router==0.1.6
 sentence_transformers==3.0.1
 pydantic==2.10.6
+outlines
