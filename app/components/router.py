@@ -32,19 +32,9 @@ class MyRouteQuery(BaseModel):
 
 
 class Router:
-    def __init__(
-            self,
-            model, model_provider, api_url, api_key
-    ) -> None:
-        model = init_chat_model(
-            model=model,
-            model_provider=model_provider,
-            base_url=api_url,
-            api_key=api_key,
-            temperature=0
-        )
+    def __init__(self, llm) -> None:
 
-        structured_llm = model.with_structured_output(MyRouteQuery, method='function_calling')
+        structured_llm = llm.with_structured_output(MyRouteQuery)
 
         system = """You are an expert in directing user questions to the appropriate data source.
         Depending on the topic the question pertains to, select 2 relevant data sources.
@@ -65,6 +55,7 @@ class Router:
         telegram — Вопросы о мессенджере Telegram.
         TK_RF — Трудовой кодекс РФ, трудовые отношения, права и обязанности сторон, условия труда.
         world_class — Мобильное приложение World Class 3.0, новые функции, управление расписанием и клубными услугами."""
+        
         prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", system),
@@ -72,10 +63,10 @@ class Router:
             ]
         )
 
-        self.router = prompt | structured_llm
+        self.model = prompt | structured_llm
 
     def route_query(self, state: State):
-        result = self.router.invoke({"question": state["question"]})
+        result = self.model.invoke({"question": state["question"]})
 
         res = [result.datasource_1, result.datasource_2]
 

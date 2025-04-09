@@ -88,10 +88,7 @@ def render_model_settings():
                 )
                 if llm.validate_model():
                     router = Router(
-                        os.getenv("MODEL_NAME"),
-                        os.getenv("MODEL_PROVIDER"),
-                        os.getenv("API_URL"),
-                        os.getenv("API_KEY"),
+                        llm=llm.model
                     )
 
                     retriever = Retriever(
