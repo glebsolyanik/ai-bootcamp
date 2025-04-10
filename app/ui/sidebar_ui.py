@@ -7,7 +7,7 @@ from workflow.rag_workflow import RAGWorkflow
 from components.router import Router
 from components.llm import LLM
 from components.retriever import Retriever
-
+from components.reranker import Reranker
 
 def render_sidebar():
     with st.sidebar:
@@ -69,18 +69,17 @@ def render_model_settings():
     if st.session_state['workflow'] is None:
         st.header("Настройки модели")
         model = st.text_input("Название модели", value=os.getenv("MODEL_NAME"))
-        model_provider = st.text_input("Поставщик модели", value=os.getenv("MODEL_PROVIDER"))
         base_url = st.text_input("Базовый URL", value=os.getenv("API_URL"))
         api_key = st.text_input("API ключ", value=os.getenv("API_KEY"), type="password")
 
         if st.button("Сохранить настройки"):
             os.environ["MODEL_NAME"] = model
-            os.environ["MODEL_PROVIDER"] = model_provider
+            os.environ["MODEL_PROVIDER"] = st.session_state['params_RAG']['PROVIDER_API']
             os.environ["API_URL"] = base_url
             os.environ["API_KEY"] = api_key
 
             # Initialization
-            if model_provider == "openai":
+            if st.session_state['params_RAG']['PROVIDER_API'] == "openai":
                 llm = LLM(
                     os.getenv("MODEL_NAME"),
                     os.getenv("MODEL_PROVIDER"),
@@ -100,10 +99,12 @@ def render_model_settings():
                         embedding_model_name=st.session_state['params_RAG']['EMBEDDING_MODEL_NAME'],
                     )
 
+                    reranker = Reranker()
                     workflow = RAGWorkflow(
                         llm=llm,
                         router=router,
-                        retriever=retriever
+                        retriever=retriever,
+                        reranker=reranker
                     )
 
                     st.session_state['workflow'] = workflow

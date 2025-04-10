@@ -34,8 +34,11 @@ class LLM:
                 Контекст: {state["context"]}
                 
                 Вопрос: {state["question"]}
+                
+                В конце добавь приписку, без изменений: Данные взяты из: {state['context_source']}  
                 """
         response = self.model.invoke(prompt)
+
         return {"messages": response}
 
     

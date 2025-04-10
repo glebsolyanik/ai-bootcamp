@@ -23,5 +23,11 @@ class Router:
         self.model.index = index
 
     def route_query(self, state:State):
-        result = self.model(state["question"])
-        return {"context_source": result.name}
+        result = self.model(state["question"], limit=2)
+
+        if isinstance(result, list):
+            res = [el.name for el in result]
+        else:
+            res = [result.name]
+
+        return {"context_source": res}
