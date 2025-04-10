@@ -88,9 +88,7 @@ def render_model_settings():
                 )
                 if llm.validate_model():
                     router = Router(
-                        artifacts_path=st.session_state['params_RAG']['ARTIFACTS_PATH'],
-                        router_config_path=st.session_state['params_RAG']['ROUTER_CONFIG_PATH'],
-                        index_router_path=st.session_state['params_RAG']['INDEX_ROUTER_PATH']
+                        llm=llm.model
                     )
 
                     retriever = Retriever(
