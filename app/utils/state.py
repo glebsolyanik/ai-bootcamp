@@ -10,3 +10,4 @@ class State(TypedDict):
     context_source: str
     context: List[str]
     messages: Annotated[Sequence[BaseMessage], add_messages]
+    d_descriptions_domen: dict

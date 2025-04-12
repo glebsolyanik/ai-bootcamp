@@ -20,4 +20,4 @@ RUN apt-get update && apt-get install -y \
 EXPOSE 8501
 
 # Запускаем приложение
-CMD ["streamlit", "run", "app.py"]
+CMD ["streamlit", "run", "app.py" "--server.maxUploadSize" "5"]

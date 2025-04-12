@@ -43,6 +43,14 @@ def main():
             "PROVIDER_API": PROVIDER_API
         }
 
+    if 'process_complete' not in st.session_state:
+        st.session_state.process_complete = False
+    if 'last_result' not in st.session_state:
+        st.session_state.last_result = None
+
+    if 'file_manager' not in st.session_state:
+        st.session_state['file_manager'] = None
+
     if 'workflow' not in st.session_state:
         st.session_state['workflow'] = None
 

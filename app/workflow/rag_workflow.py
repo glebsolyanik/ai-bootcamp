@@ -35,7 +35,7 @@ class RAGWorkflow:
         graph = builder.compile(checkpointer=MemorySaver())
         return graph
 
-    def send_message(self, messages, temperature, chat_id):
+    def send_message(self, messages, temperature, chat_id, d_descriptions_domen):
         self.llm.model.temperature = temperature
 
         messages = trim_message_history(messages)
@@ -48,7 +48,8 @@ class RAGWorkflow:
         stream = self.graph.stream(
             input={
                 "question": send_text,
-                "messages": messages
+                "messages": messages,
+                "d_descriptions_domen": d_descriptions_domen
             },
             config={
                 "configurable": {

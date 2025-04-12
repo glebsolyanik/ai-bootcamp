@@ -19,7 +19,7 @@ class LLM:
         except OpenAIError:
             return False
 
-    def generate(self, state:State):
+    def generate(self, state: State):
         if state["context"] == "":
             prompt = f"""Общайся с пользователем
             История переписки: {state["messages"]}
