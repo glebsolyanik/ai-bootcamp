@@ -21,6 +21,9 @@ class Reranker:
         Возвращает:
         List[Tuple[str, float]]: Отсортированный список кортежей (текст, оценка релевантности)
         """
+        if state['context_source'][0] == 'chitchat':
+            return {"context": "Контекста нет, это обычный вопрос, поэтому общайся с пользователем"}
+        
         texts = state['context']
         query = state['question']
         source = state['context_source']

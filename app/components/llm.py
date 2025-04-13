@@ -1,44 +1,47 @@
 from openai import OpenAIError
+from pydantic import BaseModel, Field
 from langchain.chat_models import init_chat_model
+
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import HumanMessage, AIMessage
+
+from components.generate import BaseGenerator, BaseSchema
+from utils.prompts import rag_generation_instruction
 
 from utils.state import State
 
-class LLM:
-    def __init__(self, model, model_provider, api_url, api_key) -> None:
-        self.model = init_chat_model(
-            model=model,
-            model_provider=model_provider,
-            base_url=api_url,
-            api_key=api_key,
-        )
+class LLMAnswerSchema(BaseModel):
+    answer:str = Field(
+        description="Answer the question based on context"
+    )
+    is_need_reflection:bool = Field(
+        description="If the question is complex, you need to go for reflection. Answer True if it is necessary to reflect and False if it is not necessary to do so"
+    )
 
-    def validate_model(self):
-        try:
-            self.model.invoke("test")
-            return True
-        except OpenAIError:
-            return False
+class LLM(BaseGenerator):
+    def __init__(self, model, api_url, api_key) -> None:
+        super().__init__(model, api_url, api_key)
+
+        self.set_system_prompt(rag_generation_instruction)
+        self.set_json_schema(LLMAnswerSchema)
+
 
     def generate(self, state:State):
-        if state["context"] == "":
-            prompt = f"""Общайся с пользователем
-            История переписки: {state["messages"]}
-            Сообщение пользователя: {state["question"]}
-            """
-        else:
-            prompt = f"""Пользователь задал вопрос.
-                Используя контекст, дай ему ответ на вопрос. Ответ должен быть емким, и опираться на контекст. 
-        
-                История переписки: {state["messages"]}
-                
-                Контекст: {state["context"]}
-                
-                Вопрос: {state["question"]}
-                
-                В конце добавь приписку, без изменений: Данные взяты из: {state['context_source']}  
-                """
-        response = self.model.invoke(prompt)
+        length = len(state['messages'])
+        if length > 5:
+            length = 5
 
-        return {"messages": response}
+        state['messages'][-1].content = f"""Question: {state['question']}
+            Context: {state['context']}
+
+            Message history: {state['messages'][-length:]}
+        """
+
+        result = self.generate_json_output({'messages': state['messages']})
+
+        if 'reflection_loop' not in state.keys():
+            state['reflection_loop'] = 0
+        
+        return {"messages": result['answer'], "reflection_loop": state['reflection_loop'], "is_need_reflection": result['is_need_reflection']}
 
     

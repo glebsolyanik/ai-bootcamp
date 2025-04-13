@@ -8,6 +8,7 @@ from components.router import Router
 from components.llm import LLM
 from components.retriever import Retriever
 from components.reranker import Reranker
+from components.reflection import Reflector
 
 def render_sidebar():
     with st.sidebar:
@@ -77,40 +78,27 @@ def render_model_settings():
             os.environ["MODEL_PROVIDER"] = st.session_state['params_RAG']['PROVIDER_API']
             os.environ["API_URL"] = base_url
             os.environ["API_KEY"] = api_key
-
             # Initialization
             if st.session_state['params_RAG']['PROVIDER_API'] == "openai":
-                llm = LLM(
-                    os.getenv("MODEL_NAME"),
-                    os.getenv("MODEL_PROVIDER"),
-                    os.getenv("API_URL"),
-                    os.getenv("API_KEY"),                 
-                )
-                if llm.validate_model():
-                    router = Router(
-                        llm=llm.model
-                    )
 
-                    retriever = Retriever(
-                        artifacts_path=st.session_state['params_RAG']['ARTIFACTS_PATH'],
-                        dataframe_path=st.session_state['params_RAG']['DATAFRAME_PATH'],
-                        embedding_model_name=st.session_state['params_RAG']['EMBEDDING_MODEL_NAME'],
-                    )
+                config_1 = {
+                    'model': model,
+                    'api_url':base_url,
+                    'api_key': api_key
+                }
 
-                    reranker = Reranker()
-                    workflow = RAGWorkflow(
-                        llm=llm,
-                        router=router,
-                        retriever=retriever,
-                        reranker=reranker
-                    )
+                config_2 = {
+                    'artifacts_path': st.session_state['params_RAG']['ARTIFACTS_PATH'],
+                    'dataframe_path':st.session_state['params_RAG']['DATAFRAME_PATH'],
+                    'embedding_model_name': st.session_state['params_RAG']['EMBEDDING_MODEL_NAME']
+                }
 
-                    st.session_state['workflow'] = workflow
-                    st.success("Модель успешно подключена")
-                    st.rerun()
-                else:
-                    st.session_state['workflow'] = None
-                    st.error("Не удалось подключиться к модели. Попробуйте изменить настройки")
+                with st.spinner("Модель загружается..."):
+                    workflow = RAGWorkflow(config_1, config_2)
+
+                st.session_state['workflow'] = workflow
+                st.success("Модель успешно подключена")
+                st.rerun()
 
             else:
                 st.error("Не поддерживаемый поставщик модели, попробуйте openai")

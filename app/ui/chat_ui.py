@@ -1,8 +1,11 @@
 import os
 import streamlit as st
 
-from utils import db_utils
 
+from utils import db_utils
+from utils.prompts import title_conversation_instruction
+
+from langchain_core.messages import HumanMessage
 
 def render_chat():
     st.title("Чат с LLM")
@@ -61,13 +64,10 @@ def render_chat():
                 if chat_name == "Новый чат":
                     first_message = st.session_state['messages'][0]['content']
 
-                    title_messages = [
-                        {"role": "system",
-                         "content": "Пожалуйста, сгенерируй тему разговора на основе сообщения пользователя. Тема должна быть краткой, четкой и отражать основную тему или идею сообщения. Она должно быть простой и понятной, без использования кавычек, цифр и спецсимволов. Тема должна состоять из русских слов. Не используй вводные слова, только тема разговора."},
-                        {"role": "user", "content": f"Сообщение пользователя: {first_message}"}
-                    ]
-
-                    chat_name = st.session_state['workflow'].llm.model.invoke(title_messages).content
+                    message = HumanMessage(content=f"Сообщение пользователя: {first_message}")
+                    st.session_state['workflow'].base_generator.set_system_prompt(title_conversation_instruction)
+                    
+                    chat_name = st.session_state['workflow'].generate_conversation_title([message])
 
                     chat_name = chat_name.strip()[:50]
 
