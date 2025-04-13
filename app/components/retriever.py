@@ -5,9 +5,6 @@ import faiss
 from pydantic import BaseModel, Field
 from sentence_transformers import SentenceTransformer
 
-from outlines import models, generate
-from outlines.templates import Template
-
 from utils.state import State
 from utils.prompts import retrieval_grader_instruction
 

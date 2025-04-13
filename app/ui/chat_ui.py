@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 
 
@@ -15,7 +14,9 @@ def render_chat():
         st.session_state['stop_generation'] = False
 
     # Загружаем сообщения для выбранного чата
-    if st.session_state['selected_chat_id'] is not None and st.session_state['workflow'] is not None:
+    if (st.session_state['selected_chat_id'] is not None and
+            st.session_state['workflow'] is not None and
+            st.session_state.file_manager):
         st.session_state['messages'] = db_utils.load_chat_history(st.session_state['selected_chat_id'])
 
         # Отображаем сообщения

@@ -42,23 +42,13 @@ class RAGWorkflow:
         builder.add_node('router', self.router.route_query)
         builder.add_node('retrieve', self.retriever.retrieve)
         builder.add_node('rerank', self.reranker.bm25_reranker)
-        # builder.add_node('grade_context', self.grader.grade_context)
-        # builder.add_node('rewrite_question', self.rewriter.rewrite_question)
         builder.add_node('generate', self.generator.generate)
         builder.add_node('reflection', self.reflector.reflection)
 
         builder.add_edge(START, 'router')
         builder.add_edge('router', 'retrieve')
         builder.add_edge('retrieve', 'rerank')
-        # builder.add_edge('rerank', 'grade_context')
-        # builder.add_conditional_edges(
-        #     'grade_context',
-        #     self.decide_to_generate,
-        #     {
-        #      'rewrite_question': 'rewrite_question',
-        #      'generate': 'generate'
-        #     }
-        # )
+
         
         builder.add_edge('rerank', 'generate')
         builder.add_conditional_edges(
@@ -83,7 +73,7 @@ class RAGWorkflow:
             input={
                 "question": question,
                 "messages": messages,
-                "d_descriptions_domen": d_descriptions_domen
+                "d_descriptions_domens": d_descriptions_domen
             },
             config={
                 "configurable": {

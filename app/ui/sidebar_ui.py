@@ -1,17 +1,13 @@
 import os
 import streamlit as st
 import tempfile
-import time
-
+import json
+import shutil
 from utils import db_utils
 from utils.file_processor_pipeline import FileProcessorPipeline, generate_descriptions_for_dones
 
 from workflow.rag_workflow import RAGWorkflow
-from components.router import Router
-from components.llm import LLM
-from components.retriever import Retriever
-from components.reranker import Reranker
-from components.reflection import Reflector
+
 
 def render_sidebar():
     with st.sidebar:
@@ -19,13 +15,54 @@ def render_sidebar():
         render_chat_list()
         render_file_manager()
 
+def render_model_settings():
+    if st.session_state['workflow'] is None:
+        st.header("Настройки модели")
+        model = st.text_input("Название модели", value=os.getenv("MODEL_NAME"))
+        base_url = st.text_input("Базовый URL", value=os.getenv("API_URL"))
+        api_key = st.text_input("API ключ", value=os.getenv("API_KEY"), type="password")
+
+        if st.button("Сохранить настройки"):
+            os.environ["MODEL_NAME"] = model
+            os.environ["MODEL_PROVIDER"] = st.session_state['params_RAG']['PROVIDER_API']
+            os.environ["API_URL"] = base_url
+            os.environ["API_KEY"] = api_key
+            # Initialization
+            if st.session_state['params_RAG']['PROVIDER_API'] == "openai":
+
+                config_1 = {
+                    'model': model,
+                    'api_url': base_url,
+                    'api_key': api_key
+                }
+
+                config_2 = {
+                    'artifacts_path': st.session_state['params_RAG']['ARTIFACTS_PATH'],
+                    'dataframe_path': st.session_state['params_RAG']['DATAFRAME_PATH'],
+                    'embedding_model_name': st.session_state['params_RAG']['EMBEDDING_MODEL_NAME']
+                }
+
+                with st.spinner("Модель загружается..."):
+                    workflow = RAGWorkflow(config_1, config_2)
+
+                st.session_state['workflow'] = workflow
+                st.success("Модель успешно подключена")
+                st.rerun()
+
+            else:
+                st.error("Не поддерживаемый поставщик модели, попробуйте openai")
+
 
 def render_chat_list():
     if (st.session_state['workflow'] is not None and
-            st.session_state['file_manager'] is not None and
-            os.path.exists("./artifacts") and
-            len(os.listdir("./artifacts")) > 0):
+            os.path.exists(st.session_state['params_RAG']['ARTIFACTS_PATH']) and
+            len(os.listdir(st.session_state['params_RAG']['ARTIFACTS_PATH'])) > 0 and
+            st.session_state.file_manager is not None):
 
+        if "d_descriptions_domens" not in st.session_state:
+            with open(os.path.join(st.session_state['params_RAG']['ARTIFACTS_PATH'],
+                                   st.session_state['params_RAG']["DESCRIPTION_ROUTER_PATH"]), "r") as f:
+                st.session_state["d_descriptions_domens"] = json.load(f)
 
         st.header("Чаты")
         st.session_state['chats'] = db_utils.get_chats()
@@ -76,47 +113,12 @@ def show_chat_list():
         st.write("У вас нет чатов. Создайте новый.")
 
 
-def render_model_settings():
-    if st.session_state['workflow'] is None:
-        st.header("Настройки модели")
-        model = st.text_input("Название модели", value=os.getenv("MODEL_NAME"))
-        base_url = st.text_input("Базовый URL", value=os.getenv("API_URL"))
-        api_key = st.text_input("API ключ", value=os.getenv("API_KEY"), type="password")
-
-        if st.button("Сохранить настройки"):
-            os.environ["MODEL_NAME"] = model
-            os.environ["MODEL_PROVIDER"] = st.session_state['params_RAG']['PROVIDER_API']
-            os.environ["API_URL"] = base_url
-            os.environ["API_KEY"] = api_key
-            # Initialization
-            if st.session_state['params_RAG']['PROVIDER_API'] == "openai":
-
-                config_1 = {
-                    'model': model,
-                    'api_url':base_url,
-                    'api_key': api_key
-                }
-
-                config_2 = {
-                    'artifacts_path': st.session_state['params_RAG']['ARTIFACTS_PATH'],
-                    'dataframe_path':st.session_state['params_RAG']['DATAFRAME_PATH'],
-                    'embedding_model_name': st.session_state['params_RAG']['EMBEDDING_MODEL_NAME']
-                }
-
-                with st.spinner("Модель загружается..."):
-                    workflow = RAGWorkflow(config_1, config_2)
-
-                st.session_state['workflow'] = workflow
-                st.success("Модель успешно подключена")
-                st.rerun()
-
-            else:
-                st.error("Не поддерживаемый поставщик модели, попробуйте openai")
-
-
 def render_file_manager():
     # Показываем виджеты только если file_manager не True
-    if not st.session_state.get('file_manager') and st.session_state['workflow'] is not None:
+    if ((not os.path.exists(st.session_state['params_RAG']['ARTIFACTS_PATH']) or
+            len(os.listdir(st.session_state['params_RAG']['ARTIFACTS_PATH'])) == 0) and
+            st.session_state['workflow'] is not None and
+            st.session_state.file_manager is None):
         # Инициализация состояния
         st.session_state.setdefault('uploaded_files', [])
         st.session_state.setdefault('process_complete', False)
@@ -162,13 +164,14 @@ def render_file_manager():
             st.rerun()
     else:
         # Показываем сообщение после завершения
-        if not st.session_state.get('file_manager') and st.session_state['workflow'] is not None and st.button("🔄 Загрузить новые файлы"):
+        if (st.session_state['workflow'] is not None and
+                st.button("🔄 Загрузить новые файлы")):
+            shutil.rmtree(st.session_state['params_RAG']['ARTIFACTS_PATH'])
             # Полный сброс состояния
             st.session_state.uploaded_files = []
             st.session_state.process_complete = False
-            st.session_state.file_manager = False
+            st.session_state.file_manager = None
             st.session_state.last_result = None
-            st.session_state['file_manager'] = None
             st.rerun()
 
 
@@ -181,7 +184,6 @@ def process_files_for_rag():
             file_path = os.path.join(tmp_dir, uploaded_file.name)
             with open(file_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
-
 
         # Параметры обработки (настройте под свои нужды)
         output_path = st.session_state['params_RAG']['ARTIFACTS_PATH']  # Или другая постоянная директория
@@ -200,17 +202,25 @@ def process_files_for_rag():
 
             df = fileprocessor.start_process()
 
-            print(f"init_context_data for Retriever -> "
-                    f"{st.session_state['workflow'].retriever.init_context_data()}")
-            
-            
-            d_descriptions_domens = generate_descriptions_for_dones(df, st.session_state['workflow'].base_generator.get_llm())
+            if df is not None:
+                print(f"init_context_data for Retriever -> "
+                      f"{st.session_state['workflow'].retriever.init_context_data()}")
 
-            st.session_state["d_descriptions_domens"] = d_descriptions_domens
+                d_descriptions_domens = generate_descriptions_for_dones(df,
+                    st.session_state['workflow'].base_generator.get_llm())
 
-            st.session_state.last_result = True
+                with open(os.path.join(st.session_state['params_RAG']['ARTIFACTS_PATH'],
+                                       st.session_state['params_RAG']["DESCRIPTION_ROUTER_PATH"]), "w") as f:
+                    json.dump(d_descriptions_domens, f)
 
-        st.sidebar.success("✅ Все файлы успешно обработаны!")
+                st.session_state["d_descriptions_domens"] = d_descriptions_domens
+
+                st.session_state.last_result = True
+
+            if df is not None:
+                st.sidebar.success("✅ Все файлы успешно обработаны!")
+            else:
+                st.sidebar.warning("Файлы не загружены. Повторите попытку")
 
     # except Exception as e:
     #     st.sidebar.error(f"Ошибка обработки: {str(e)}")

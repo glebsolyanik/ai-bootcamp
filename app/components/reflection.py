@@ -1,8 +1,4 @@
-import json
 from pydantic import BaseModel, Field
-from outlines.templates import Template
-
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from langchain_core.messages import HumanMessage
 

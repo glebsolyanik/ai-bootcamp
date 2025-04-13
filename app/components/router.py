@@ -1,7 +1,5 @@
 from langchain_core.messages import HumanMessage
 
-from utils.prompts import router_instruction
-
 from components.generate import BaseGenerator
 
 
@@ -51,9 +49,9 @@ class Router(BaseGenerator):
     def route_query(self, state: State):
         # logger.warning(f"Message == {state["question"]}")
         
-        message = HumanMessage(content=f""""{state['d_descriptions_domen']['descriptions']}, user's query: {state["question"]}""")
+        message = HumanMessage(content=f""""{state['d_descriptions_domens']['descriptions']}, user's query: {state["question"]}""")
 
-        DynamicRouteQuery = create_route_model_class(state['d_descriptions_domen']['domens'])
+        DynamicRouteQuery = create_route_model_class(state['d_descriptions_domens']['domens'])
         self.set_json_schema(DynamicRouteQuery)
 
         result = self.generate_json_output([message])

@@ -1,11 +1,7 @@
 from pydantic import BaseModel, Field
 
 from components.generate import BaseGenerator
-from utils.prompts import rewriter_question_instruction
-from utils.state import State
 
-from outlines import models, generate
-from outlines.templates import Template
 
 class RewrittenQuestion(BaseModel):
     is_clarifying:bool = Field(

@@ -20,6 +20,7 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD")
 ARTIFACTS_PATH = os.environ.get("ARTIFACTS_PATH")
 EMBEDDING_MODEL_NAME = os.environ.get("EMBEDDING_MODEL_NAME")
 DATAFRAME_PATH = os.environ.get("DATAFRAME_PATH")
+DESCRIPTION_ROUTER_PATH = os.environ.get("DESCRIPTION_ROUTER_PATH")
 
 # настройка API
 PROVIDER_API = os.environ.get("PROVIDER_API")
@@ -40,7 +41,8 @@ def main():
             "ARTIFACTS_PATH": ARTIFACTS_PATH,
             "EMBEDDING_MODEL_NAME": EMBEDDING_MODEL_NAME,
             "DATAFRAME_PATH": DATAFRAME_PATH,
-            "PROVIDER_API": PROVIDER_API
+            "PROVIDER_API": PROVIDER_API,
+            "DESCRIPTION_ROUTER_PATH": DESCRIPTION_ROUTER_PATH
         }
 
     if 'process_complete' not in st.session_state:

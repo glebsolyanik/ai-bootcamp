@@ -4,14 +4,9 @@ import json
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from typing import List
-
 from utils.prompts import base_generator_model
-from langchain_core.output_parsers import JsonOutputParser
 
 from pydantic import BaseModel, Field
-from outlines import models, generate
-from outlines.templates import Template
 
 class BaseSchema(BaseModel):
     answer:str = Field(
