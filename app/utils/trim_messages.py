@@ -14,3 +14,5 @@ def trim_message_history(messages):
             total_tokens -= count_tokens_approximately(removed_message['content'])
 
         return messages
+
+

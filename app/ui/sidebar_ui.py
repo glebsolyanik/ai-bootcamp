@@ -1,7 +1,10 @@
 import os
 import streamlit as st
+import tempfile
+import time
 
 from utils import db_utils
+from utils.file_processor_pipeline import FileProcessorPipeline, generate_descriptions_for_dones
 
 from workflow.rag_workflow import RAGWorkflow
 from components.router import Router
@@ -14,9 +17,16 @@ def render_sidebar():
     with st.sidebar:
         render_model_settings()
         render_chat_list()
+        render_file_manager()
+
 
 def render_chat_list():
-    if st.session_state['workflow'] is not None:
+    if (st.session_state['workflow'] is not None and
+            st.session_state['file_manager'] is not None and
+            os.path.exists("./artifacts") and
+            len(os.listdir("./artifacts")) > 0):
+
+
         st.header("Чаты")
         st.session_state['chats'] = db_utils.get_chats()
 
@@ -102,4 +112,118 @@ def render_model_settings():
 
             else:
                 st.error("Не поддерживаемый поставщик модели, попробуйте openai")
-    
+
+
+def render_file_manager():
+    # Показываем виджеты только если file_manager не True
+    if not st.session_state.get('file_manager') and st.session_state['workflow'] is not None:
+        # Инициализация состояния
+        st.session_state.setdefault('uploaded_files', [])
+        st.session_state.setdefault('process_complete', False)
+        st.session_state.setdefault('last_result', None)
+
+        # Основной интерфейс
+        st.title("📁 Для работы с сервисом загрузите текстовые данные!")
+        st.text("Ваши файлы должны быть в формате pdf или txt, а также не превышать 5 мб.")
+        st.text("После загрузки файлов будет происходить их обработка. Это может занять определенное время.")
+
+        # Секция загрузки файлов
+        with st.expander("➕ Загрузить файлы", expanded=True):
+            uploaded_files = st.file_uploader(
+                "Выберите файлы",
+                accept_multiple_files=True,
+                type=['pdf', 'txt'],
+                label_visibility="collapsed"
+            )
+
+            # Обновляем список файлов
+            if uploaded_files:
+                current_files = st.session_state.uploaded_files.copy()
+                for new_file in uploaded_files:
+                    if not any(f.name == new_file.name and f.size == new_file.size for f in current_files):
+                        current_files.append(new_file)
+                st.session_state.uploaded_files = current_files
+                st.session_state.process_complete = False
+
+        # Секция обработки
+        if st.session_state.uploaded_files and not st.session_state.process_complete:
+            st.divider()
+            if st.button("⚙️ Подготовить данные",
+                         type="primary",
+                         use_container_width=True):
+                process_files_for_rag()
+                # После завершения обработки скрываем виджеты
+                st.session_state.file_manager = True
+                st.rerun()
+
+        # Показ результатов
+        if st.session_state.process_complete and st.session_state.last_result:
+            st.session_state.file_manager = True
+            st.rerun()
+    else:
+        # Показываем сообщение после завершения
+        if not st.session_state.get('file_manager') and st.session_state['workflow'] is not None and st.button("🔄 Загрузить новые файлы"):
+            # Полный сброс состояния
+            st.session_state.uploaded_files = []
+            st.session_state.process_complete = False
+            st.session_state.file_manager = False
+            st.session_state.last_result = None
+            st.session_state['file_manager'] = None
+            st.rerun()
+
+
+def process_files_for_rag():
+    """Обработка файлов с использованием временной директории"""
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Сохраняем загруженные файлы во временную директорию
+            for uploaded_file in st.session_state.uploaded_files:
+                file_path = os.path.join(tmp_dir, uploaded_file.name)
+                with open(file_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+
+
+            # Параметры обработки (настройте под свои нужды)
+            output_path = st.session_state['params_RAG']['ARTIFACTS_PATH']  # Или другая постоянная директория
+
+            if not os.path.exists(output_path):
+                os.makedirs(output_path)
+
+            embedding_model_name = st.session_state['params_RAG']['EMBEDDING_MODEL_NAME']  # Замените на реальное имя модели
+
+            with st.spinner("Идет обработка файлов..."):
+                fileprocessor = FileProcessorPipeline(
+                    input_path=tmp_dir,
+                    output_path=output_path,
+                    embedding_model_name=embedding_model_name
+                )
+
+                df = fileprocessor.start_process()
+
+                print(f"init_context_data for Retriever -> "
+                      f"{st.session_state['workflow'].retriever.init_context_data()}")
+
+                d_descriptions_domens = generate_descriptions_for_dones(df, st.session_state['workflow'].llm.model)
+
+                st.session_state["d_descriptions_domens"] = d_descriptions_domens
+
+                st.session_state.last_result = True
+
+
+
+
+            st.sidebar.success("✅ Все файлы успешно обработаны!")
+
+    except Exception as e:
+        st.sidebar.error(f"Ошибка обработки: {str(e)}")
+    finally:
+        # Гарантируем очистку временных файлов
+        if 'tmp_dir' in locals() and os.path.exists(tmp_dir):
+            try:
+                for f in os.listdir(tmp_dir):
+                    os.remove(os.path.join(tmp_dir, f))
+                os.rmdir(tmp_dir)
+            except Exception as cleanup_error:
+                st.error(f"Ошибка очистки временных файлов: {cleanup_error}")
+
+    st.session_state.process_complete = True

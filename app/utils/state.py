@@ -18,9 +18,9 @@ from langgraph.graph.message import add_messages
 
 class State(TypedDict):
     question:str 
-    is_rewrite_question:bool
     context_source:str
     context:List[str]
     messages:Annotated[Sequence[BaseMessage], add_messages]
     reflection_loop:int
     is_need_reflection:bool
+    d_descriptions_domen: dict

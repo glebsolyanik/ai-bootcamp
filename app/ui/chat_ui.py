@@ -25,7 +25,17 @@ def render_chat():
 
         # Поле ввода
         if prompt := st.chat_input("Сообщение"):
-            st.session_state['messages'].append({"role": "user", "content": prompt})
+
+
+            tmp_prompt = f"""Исправь орфографические ошибки, если они есть, и выведи то, сообщение пользователя. 
+            Не пиши ничего лишнего, только исправленное Сообщение пользователя. Без слов: исправленное сообщение пользователя. 
+            Выводи сообщение сообщение на том же языке, что оно и было изначально.
+            Сообщение пользователя: {prompt}"""
+
+            correct_prompt = st.session_state['workflow'].llm.model.invoke(tmp_prompt).content
+
+
+            st.session_state['messages'].append({"role": "user", "content": correct_prompt})
             with st.chat_message("user"):
                 st.markdown(prompt)
 
@@ -46,7 +56,8 @@ def render_chat():
                     ai_answer = st.session_state['workflow'].send_message(
                         messages=st.session_state['messages'],
                         temperature=st.session_state['temperature'],
-                        chat_id=st.session_state['selected_chat_id']
+                        chat_id=st.session_state['selected_chat_id'],
+                        d_descriptions_domen=st.session_state['d_descriptions_domens']
                     )
 
                     ai_answer = st.write_stream(ai_answer)

@@ -71,7 +71,7 @@ class RAGWorkflow:
         graph = builder.compile(checkpointer=MemorySaver())
         return graph
 
-    def send_message(self, messages, temperature, chat_id):
+    def send_message(self, messages, temperature, chat_id, d_descriptions_domen):
         self.generator.set_temperature(temperature)
 
         messages = trim_message_history(messages)
@@ -82,7 +82,8 @@ class RAGWorkflow:
         result = self.graph.invoke(
             input={
                 "question": question,
-                "messages": messages
+                "messages": messages,
+                "d_descriptions_domen": d_descriptions_domen
             },
             config={
                 "configurable": {

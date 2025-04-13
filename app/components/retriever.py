@@ -16,10 +16,19 @@ class Retriever:
     def __init__(self, artifacts_path, dataframe_path, embedding_model_name) -> None:
 
         self.artifacts_path = artifacts_path
-        self.context_data = pd.read_csv(os.path.join(self.artifacts_path, dataframe_path))
+
+        self.path_to_context_data = os.path.join(self.artifacts_path, dataframe_path)
+        self.context_data = None
+
 
         self.embedding_model = SentenceTransformer(embedding_model_name)
 
+
+    def init_context_data(self):
+
+        self.context_data = pd.read_csv(self.path_to_context_data)
+
+        return True
     def retrieve(self, state: State):
         text_list = []
         context_source = []
@@ -45,7 +54,7 @@ class Retriever:
 
         _, I = index.search(query_emb, top_k)
 
-        top_k = self.context_data[self.context_data['class_type'] == class_name].iloc[I[0]]
+        top_k = self.context_data[self.context_data['domen'] == class_name].iloc[I[0]]
 
         return top_k
 

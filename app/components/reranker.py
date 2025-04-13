@@ -27,6 +27,9 @@ class Reranker:
         texts = state['context']
         query = state['question']
         source = state['context_source']
+
+        if len(texts) == 0:
+            return {"context": "", "context_source": ""}
         # Токенизация текстов и запроса (базовый вариант)
         tokenized_texts = [doc.split() for doc in texts]
         tokenized_query = query.split()
