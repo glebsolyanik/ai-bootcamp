@@ -40,7 +40,7 @@ class Retriever:
                 continue
 
             context = self.similarity_search(state["question"], name, top_k)
-            context = context['answer'].to_list()
+            context = context['chunk'].to_list()
             text_list = text_list + context
             context_source.append(name)
 

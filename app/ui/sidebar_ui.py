@@ -174,56 +174,54 @@ def render_file_manager():
 
 def process_files_for_rag():
     """Обработка файлов с использованием временной директории"""
-    try:
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # Сохраняем загруженные файлы во временную директорию
-            for uploaded_file in st.session_state.uploaded_files:
-                file_path = os.path.join(tmp_dir, uploaded_file.name)
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
+    # try:
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        # Сохраняем загруженные файлы во временную директорию
+        for uploaded_file in st.session_state.uploaded_files:
+            file_path = os.path.join(tmp_dir, uploaded_file.name)
+            with open(file_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
 
 
-            # Параметры обработки (настройте под свои нужды)
-            output_path = st.session_state['params_RAG']['ARTIFACTS_PATH']  # Или другая постоянная директория
+        # Параметры обработки (настройте под свои нужды)
+        output_path = st.session_state['params_RAG']['ARTIFACTS_PATH']  # Или другая постоянная директория
 
-            if not os.path.exists(output_path):
-                os.makedirs(output_path)
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
 
-            embedding_model_name = st.session_state['params_RAG']['EMBEDDING_MODEL_NAME']  # Замените на реальное имя модели
+        embedding_model_name = st.session_state['params_RAG']['EMBEDDING_MODEL_NAME']  # Замените на реальное имя модели
 
-            with st.spinner("Идет обработка файлов..."):
-                fileprocessor = FileProcessorPipeline(
-                    input_path=tmp_dir,
-                    output_path=output_path,
-                    embedding_model_name=embedding_model_name
-                )
+        with st.spinner("Идет обработка файлов..."):
+            fileprocessor = FileProcessorPipeline(
+                input_path=tmp_dir,
+                output_path=output_path,
+                embedding_model_name=embedding_model_name
+            )
 
-                df = fileprocessor.start_process()
+            df = fileprocessor.start_process()
 
-                print(f"init_context_data for Retriever -> "
-                      f"{st.session_state['workflow'].retriever.init_context_data()}")
+            print(f"init_context_data for Retriever -> "
+                    f"{st.session_state['workflow'].retriever.init_context_data()}")
+            
+            
+            d_descriptions_domens = generate_descriptions_for_dones(df, st.session_state['workflow'].base_generator.get_llm())
 
-                d_descriptions_domens = generate_descriptions_for_dones(df, st.session_state['workflow'].llm.model)
+            st.session_state["d_descriptions_domens"] = d_descriptions_domens
 
-                st.session_state["d_descriptions_domens"] = d_descriptions_domens
+            st.session_state.last_result = True
 
-                st.session_state.last_result = True
+        st.sidebar.success("✅ Все файлы успешно обработаны!")
 
-
-
-
-            st.sidebar.success("✅ Все файлы успешно обработаны!")
-
-    except Exception as e:
-        st.sidebar.error(f"Ошибка обработки: {str(e)}")
-    finally:
-        # Гарантируем очистку временных файлов
-        if 'tmp_dir' in locals() and os.path.exists(tmp_dir):
-            try:
-                for f in os.listdir(tmp_dir):
-                    os.remove(os.path.join(tmp_dir, f))
-                os.rmdir(tmp_dir)
-            except Exception as cleanup_error:
-                st.error(f"Ошибка очистки временных файлов: {cleanup_error}")
+    # except Exception as e:
+    #     st.sidebar.error(f"Ошибка обработки: {str(e)}")
+    # finally:
+    #     # Гарантируем очистку временных файлов
+    if 'tmp_dir' in locals() and os.path.exists(tmp_dir):
+        try:
+            for f in os.listdir(tmp_dir):
+                os.remove(os.path.join(tmp_dir, f))
+            os.rmdir(tmp_dir)
+        except Exception as cleanup_error:
+            st.error(f"Ошибка очистки временных файлов: {cleanup_error}")
 
     st.session_state.process_complete = True

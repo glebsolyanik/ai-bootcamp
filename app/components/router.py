@@ -26,22 +26,22 @@ def create_route_model_class(data_sources: List[str]):
     class DynamicRouteQuery(BaseModel):
         """Route a user query to the most relevant two datasource."""
 
-    datasource_1: Literal["bank", "brave", "bridges_and_pipes", "documents", "dom_ru",
-                        "edu", "FAQ_bulldog", "FAQ_skin", "gosuslugi", "Michelin", "potr_carz",
-                        "rectifier", "red_mad_robot", "starvest", "telegram", "TK_RF", "world_class", "chitchat"] = Field(
-        ...,
-        description="""Given a user question, choose which datasource would be most 1 relevant for answering their question
-        """,)
-    datasource_2: Literal["bank", "brave", "bridges_and_pipes", "documents", "dom_ru",
-                        "edu", "FAQ_bulldog", "FAQ_skin", "gosuslugi", "Michelin", "potr_carz",
-                        "rectifier", "red_mad_robot", "starvest", "telegram", "TK_RF", "world_class", "chitchat"] = Field(
-        ...,
-        description="""Given a user question, choose which datasource would be most 2 relevant for answering their question
-        """,
-    )
+        datasource_1: DataSourceLiteral = Field(  # type: ignore
+                ...,
+                description="Given a user question, choose which datasource would be most 1 relevant"
+            )
+
+        datasource_2: DataSourceLiteral = Field(  # type: ignore
+            ...,
+            description="Given a user question, choose which datasource would be most 2 relevant"
+        )
+        class Config:
+                arbitrary_types_allowed = True
+
+    return DynamicRouteQuery
 
 
-class Router(BaseModel):
+class Router(BaseGenerator):
     def __init__(self, model, api_url, api_key) -> None:
         super().__init__(model, api_url, api_key)
         
@@ -49,10 +49,9 @@ class Router(BaseModel):
         
 
     def route_query(self, state: State):
-        logger.warning(f"Message == {state["question"]}")
+        # logger.warning(f"Message == {state["question"]}")
         
-        message = HumanMessage(content=state['d_descriptions_domen']['descriptions'] +
-                   "user's query:" + state["question"])
+        message = HumanMessage(content=f""""{state['d_descriptions_domen']['descriptions']}, user's query: {state["question"]}""")
 
         DynamicRouteQuery = create_route_model_class(state['d_descriptions_domen']['domens'])
         self.set_json_schema(DynamicRouteQuery)

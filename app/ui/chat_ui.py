@@ -26,16 +26,7 @@ def render_chat():
         # Поле ввода
         if prompt := st.chat_input("Сообщение"):
 
-
-            tmp_prompt = f"""Исправь орфографические ошибки, если они есть, и выведи то, сообщение пользователя. 
-            Не пиши ничего лишнего, только исправленное Сообщение пользователя. Без слов: исправленное сообщение пользователя. 
-            Выводи сообщение сообщение на том же языке, что оно и было изначально.
-            Сообщение пользователя: {prompt}"""
-
-            correct_prompt = st.session_state['workflow'].llm.model.invoke(tmp_prompt).content
-
-
-            st.session_state['messages'].append({"role": "user", "content": correct_prompt})
+            st.session_state['messages'].append({"role": "user", "content": prompt})
             with st.chat_message("user"):
                 st.markdown(prompt)
 
