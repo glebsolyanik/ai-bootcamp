@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from components.generate import BaseGenerator, BaseSchema
+from components.generate import BaseGenerator
 from utils.prompts import rag_generation_instruction
 
 from utils.state import State

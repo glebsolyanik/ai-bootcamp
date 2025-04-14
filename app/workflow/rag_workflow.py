@@ -6,7 +6,7 @@ from langgraph.graph import START, END, StateGraph
 
 from components.router import Router
 from components.llm import LLM
-from components.retriever import Retriever, RetrievalGrader
+from components.retriever import Retriever
 from components.reranker import Reranker
 from components.rewriter import RewriterQuestion
 from components.reflection import Reflector

@@ -2,7 +2,6 @@ from langchain_core.messages import HumanMessage
 
 from components.generate import BaseGenerator
 
-
 from utils.state import State
 from utils.prompts import router_instruction
 

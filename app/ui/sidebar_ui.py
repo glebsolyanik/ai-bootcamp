@@ -56,8 +56,7 @@ def render_model_settings():
 def render_chat_list():
     if (st.session_state['workflow'] is not None and
             os.path.exists(st.session_state['params_RAG']['ARTIFACTS_PATH']) and
-            len(os.listdir(st.session_state['params_RAG']['ARTIFACTS_PATH'])) > 0 and
-            st.session_state.file_manager is not None):
+            len(os.listdir(st.session_state['params_RAG']['ARTIFACTS_PATH'])) > 0):
 
         if "d_descriptions_domens" not in st.session_state:
             with open(os.path.join(st.session_state['params_RAG']['ARTIFACTS_PATH'],
@@ -222,10 +221,6 @@ def process_files_for_rag():
             else:
                 st.sidebar.warning("Файлы не загружены. Повторите попытку")
 
-    # except Exception as e:
-    #     st.sidebar.error(f"Ошибка обработки: {str(e)}")
-    # finally:
-    #     # Гарантируем очистку временных файлов
     if 'tmp_dir' in locals() and os.path.exists(tmp_dir):
         try:
             for f in os.listdir(tmp_dir):

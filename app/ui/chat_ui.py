@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 
 
@@ -16,8 +17,12 @@ def render_chat():
     # Загружаем сообщения для выбранного чата
     if (st.session_state['selected_chat_id'] is not None and
             st.session_state['workflow'] is not None and
-            st.session_state.file_manager):
+            os.path.exists(st.session_state['params_RAG']['ARTIFACTS_PATH']) and
+            len(os.listdir(st.session_state['params_RAG']['ARTIFACTS_PATH'])) > 0):
         st.session_state['messages'] = db_utils.load_chat_history(st.session_state['selected_chat_id'])
+
+        if st.session_state['workflow'].retriever.context_data is None:
+            st.session_state['workflow'].retriever.init_context_data()
 
         # Отображаем сообщения
         for message in st.session_state['messages']:
