@@ -1,15 +1,14 @@
 # Используем официальный Python образ как базовый
-FROM python:3.10-slim
-
+FROM python:3.12.4-slim
 # Устанавливаем рабочую директорию в контейнере
 WORKDIR /app
 
 # Копируем файлы приложения в контейнер
 COPY . .
 
-RUN pip install --upgrade pip
+RUN pip3 install --upgrade pip
 # Устанавливаем зависимости
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Устанавливаем PostgreSQL клиент для работы с базой данных
 RUN apt-get update && apt-get install -y \
@@ -20,4 +19,4 @@ RUN apt-get update && apt-get install -y \
 EXPOSE 8501
 
 # Запускаем приложение
-CMD ["streamlit", "run", "app.py"]
+CMD ["streamlit", "run", "app.py", "--server.maxUploadSize", "5"]

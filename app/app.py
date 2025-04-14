@@ -18,11 +18,9 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
 # Параметры для RAG
 ARTIFACTS_PATH = os.environ.get("ARTIFACTS_PATH")
-ROUTER_CONFIG_PATH = os.environ.get("ROUTER_CONFIG_PATH")
 EMBEDDING_MODEL_NAME = os.environ.get("EMBEDDING_MODEL_NAME")
-CLASSES_JSON_INFO_PATH = os.environ.get("CLASSES_JSON_INFO_PATH")
 DATAFRAME_PATH = os.environ.get("DATAFRAME_PATH")
-INDEX_ROUTER_PATH = os.environ.get("INDEX_ROUTER_PATH")
+DESCRIPTION_ROUTER_PATH = os.environ.get("DESCRIPTION_ROUTER_PATH")
 
 # настройка API
 PROVIDER_API = os.environ.get("PROVIDER_API")
@@ -41,13 +39,20 @@ def main():
     if 'params_RAG' not in st.session_state:
         st.session_state['params_RAG'] = {
             "ARTIFACTS_PATH": ARTIFACTS_PATH,
-            "ROUTER_CONFIG_PATH": ROUTER_CONFIG_PATH,
             "EMBEDDING_MODEL_NAME": EMBEDDING_MODEL_NAME,
-            "CLASSES_JSON_INFO_PATH": CLASSES_JSON_INFO_PATH,
             "DATAFRAME_PATH": DATAFRAME_PATH,
-            "INDEX_ROUTER_PATH": INDEX_ROUTER_PATH,
-            "PROVIDER_API": PROVIDER_API
+            "PROVIDER_API": PROVIDER_API,
+            "DESCRIPTION_ROUTER_PATH": DESCRIPTION_ROUTER_PATH
         }
+
+    if 'process_complete' not in st.session_state:
+        st.session_state.process_complete = False
+    
+    if 'last_result' not in st.session_state:
+        st.session_state.last_result = None
+
+    if 'file_manager' not in st.session_state:
+        st.session_state['file_manager'] = None
 
     if 'workflow' not in st.session_state:
         st.session_state['workflow'] = None

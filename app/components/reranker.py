@@ -1,7 +1,4 @@
 from rank_bm25 import BM25Okapi
-from typing import List, Tuple
-import numpy as np
-
 from utils.state import State
 
 
@@ -21,9 +18,15 @@ class Reranker:
         Возвращает:
         List[Tuple[str, float]]: Отсортированный список кортежей (текст, оценка релевантности)
         """
+        if state['context_source'][0] == 'chitchat':
+            return {"context": "Контекста нет, это обычный вопрос, поэтому общайся с пользователем"}
+        
         texts = state['context']
         query = state['question']
         source = state['context_source']
+
+        if len(texts) == 0:
+            return {"context": "", "context_source": ""}
         # Токенизация текстов и запроса (базовый вариант)
         tokenized_texts = [doc.split() for doc in texts]
         tokenized_query = query.split()

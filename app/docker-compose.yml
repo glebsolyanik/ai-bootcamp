@@ -7,6 +7,8 @@ services:
     container_name: streamlit-llm-chat
     ports:
       - "8501:8501"  # Прокидываем порт для доступа к Streamlit
+    volumes:
+      - ./:/app
     depends_on:
       db:
         condition: service_healthy
