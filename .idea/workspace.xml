@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2d4ee6df-bcb6-482d-a734-0bc42f7f33bb" name="Changes" comment="" />
+    <list default="true" id="2d4ee6df-bcb6-482d-a734-0bc42f7f33bb" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -22,7 +25,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/glebsolyanik/ai-bootcamp.git&quot;,
-    &quot;accountId&quot;: &quot;b560b5d2-9d22-455a-b516-f60b474a30b7&quot;
+    &quot;accountId&quot;: &quot;54864819-c1d9-41bf-87d3-b62e78122905&quot;
   }
 }</component>
   <component name="ProjectColorInfo">{
@@ -30,6 +33,7 @@
   &quot;associatedIndex&quot;: 3
 }</component>
   <component name="ProjectId" id="2vMAoCRWgRjlZm4jclZRVtsm99u" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -37,8 +41,9 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "gleb-dev",
-    "last_opened_file_path": "C:/Users/maks6/Desktop/Буткемп/homework/hm3/git/ai-bootcamp"
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/Users/maks6/Desktop/Буткемп/homework/hm3/git/ai-bootcamp",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
   }
 }]]></component>
   <component name="RecentsManager">
